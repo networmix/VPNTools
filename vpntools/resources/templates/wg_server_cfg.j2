@@ -1,5 +1,8 @@
-## WireGuard VPN Config {{ now().strftime("%Y-%m-%d %H:%M") }} UTC ##
+## WireGuard VPN Server {{ hostname }} ##
+## {{ now().strftime("%Y-%m-%d %H:%M") }} UTC ##
+
 [Interface]
+## {{ wg_if_name }} ##
 ## VPN Server private IP address ##
 Address = {{ server_private_ip }}
 
@@ -22,6 +25,6 @@ PreDown = ip6tables -t nat -D POSTROUTING -o eth0 -j MASQUERADE
 PublicKey = {{ peer_cfg.public_key }}
 
 ## private IP prefix for this peer ##
-AllowedIPs = {{ peer_cfg.private_ip_prefix }}
+AllowedIPs = {{ ipaddress.ip_interface(peer_cfg.peer_private_ip).ip }}/32
 {% endfor %}
 {% endfor %}

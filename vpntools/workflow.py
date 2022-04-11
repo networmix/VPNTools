@@ -1,5 +1,6 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
+import subprocess
 
 from dataclasses import dataclass
 from collections import deque
@@ -9,7 +10,7 @@ from typing import Any, Dict, List, Optional
 
 from vpntools.helpers import get_resource_path, yaml_to_dict
 from vpntools.host import Host
-from vpntools.wireguard import build_wg_server_cfg
+from vpntools.wireguard import build_wg_peer_cfg, build_wg_server_cfg
 from vpntools.resources import scripts
 
 
@@ -132,7 +133,7 @@ class DeployWireguard(Instruction):
                     hostname,
                     wg_if_name,
                 )
-                wg_cfg_str = build_wg_server_cfg(wg_if_dict)
+                wg_cfg_str = build_wg_server_cfg(wg_if_dict, hostname, wg_if_name)
                 wg_cfg_path = os.path.join(host.TMP_DATA_DIR, f"{wg_if_name}.conf")
                 logger.info("%s: Uploading Wireguard configuration", hostname)
                 host.put_data_into_file(
@@ -145,9 +146,42 @@ class DeployWireguard(Instruction):
         return ctx
 
 
+class BuildWireguardClients(Instruction):
+    def run(self, ctx: ExecutionContext) -> ExecutionContext:
+        for hostname, _ in ctx.hosts.items():
+            logger.info("%s: Generating Wireguard client configurations", hostname)
+            wg_app_config = ctx.config[hostname]["app_config"]["wireguard"]
+            for _, wg_if_dict in wg_app_config.items():
+                for peer in wg_if_dict["peers"]:
+                    for peer_name, peer_dict in peer.items():
+                        logger.info(
+                            "%s: Generating Wireguard client configuration for %s",
+                            hostname,
+                            peer_name,
+                        )
+                        wg_peer_cfg_str = build_wg_peer_cfg(
+                            peer_dict, wg_if_dict, hostname
+                        )
+                        wg_peer_cfg_path = os.path.join(
+                            os.path.curdir, f"{peer_name}.conf"
+                        )
+                        print(f"Configuration for {peer_name}:")
+                        print(wg_peer_cfg_str)
+                        print(f"QR code for {peer_name}:")
+                        ret = subprocess.run(
+                            f"echo '{wg_peer_cfg_str}' | qrencode -t ansiutf8",
+                            capture_output=True,
+                            shell=True,
+                            check=True,
+                        )
+                        print(ret.stdout.decode("utf8"))
+        return ctx
+
+
 INSTRUCTIONS = {
     "LOAD_CONFIG": LoadConfig,
     "CONNECT_HOSTS": ConnectHosts,
     "GET_HOST_STATUS": GetHostStatus,
     "DEPLOY_WIREGUARD": DeployWireguard,
+    "BUILD_WIREGUARD_CLIENTS": BuildWireguardClients,
 }

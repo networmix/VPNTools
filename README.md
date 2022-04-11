@@ -39,7 +39,7 @@ For now supports only Wireguard.
 ```yaml
 # server IP address or a hostname
 1.1.1.1:
-  description: some_server_name
+  description: some_server_description
   ssh_user: "ssh_user_name"
   # ssh-keygen -t ed25519 -C "some@tag"
   ssh_private_key: |2

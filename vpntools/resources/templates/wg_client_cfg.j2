@@ -1,0 +1,9 @@
+[Interface]
+PrivateKey = {{ private_key }}
+Address = {{ peer_private_ip }}
+DNS = {{ dns_servers }}
+
+[Peer]
+PublicKey = {{ wg_srv_cfg.public_key }}
+AllowedIPs = 0.0.0.0/0
+Endpoint = {{ server_external_ip_address }}:{{ wg_srv_cfg.server_port }}
