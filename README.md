@@ -29,7 +29,7 @@ For now supports only Wireguard.
     ```text
     pip install -e .
     ```
-1. Run the workflow. For example, `deploy_wg`.
+1. Run the workflow. For example, `deploy_wg`:
     ```text
     python3 vpntools/cli.py deploy_wg `path_to_the_vpn_yaml`
     ```
