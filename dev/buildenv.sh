@@ -7,6 +7,7 @@ IMAGE_ID=$(docker images --format "{{.ID}}" $IMAGE_TAG)
 
 USAGE="Usage: $0 COMMAND IMAGE_TAG\n"
 USAGE+="    COMMAND is what you expect script to do:\n"
+USAGE+="        build - Builds an image from a Dockerfile.\n"
 USAGE+="        run - Runs a container.\n"
 USAGE+="        killall - Stops and removes all running containers.\n"
 USAGE+="        forcecleanall - Clean-up Docker.\n"
@@ -18,6 +19,15 @@ if [[ $# -lt 1 ]]; then
 fi
 
 [[ $(uname) -eq "Darwin" ]] && MODHACK="-v /lib/modules:/lib/modules:ro" || MODHACK=""
+
+function build {
+    echo "Building docker container"
+    docker build ./dev -t $IMAGE_TAG
+
+    IMAGE_ID=$(docker images --format "{{.ID}}" $IMAGE_TAG)
+    echo "Container image id: $IMAGE_ID"
+    return 0
+}
 
 function run {
     name=$(basename "`pwd`")
@@ -48,6 +58,11 @@ function forcecleanall {
 }
 
 case $1 in
+    build)
+        echo "Executing BUILD command..."
+        build "$@"
+        ;;
+
     run)
         echo "Executing RUN command..."
         run "$@"
