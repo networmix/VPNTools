@@ -33,6 +33,7 @@ For now supports only Wireguard.
     ```text
     python3 vpntools/cli.py deploy_wg `path_to_the_vpn_yaml`
     ```
+    In the process it will provision the VPN server and generate client configurations (including QR codes).
 
 ## VPN Yaml Example
 
