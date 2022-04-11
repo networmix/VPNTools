@@ -1,0 +1,10 @@
+pyyaml
+jq
+fabric
+hcloud
+paramiko
+pytest
+pytest-cov
+pytest-mock
+pylint
+black

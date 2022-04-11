@@ -1,0 +1,27 @@
+## WireGuard VPN Config {{ now().strftime("%Y-%m-%d %H:%M") }} UTC ##
+[Interface]
+## VPN Server private IP address ##
+Address = {{ server_private_ip }}
+
+## VPN Server port ##
+ListenPort = {{ server_port }}
+
+## VPN Server private key ##
+PrivateKey = {{ private_key }}
+
+## PostUp and PreDown ##
+PostUp = iptables -t nat -I POSTROUTING -o eth0 -j MASQUERADE
+PostUp = ip6tables -t nat -I POSTROUTING -o eth0 -j MASQUERADE
+PreDown = iptables -t nat -D POSTROUTING -o eth0 -j MASQUERADE
+PreDown = ip6tables -t nat -D POSTROUTING -o eth0 -j MASQUERADE
+{% for peer in peers %}
+{% for peer_name, peer_cfg in peer.items() %}
+
+[Peer]
+## {{ peer_name }} ##
+PublicKey = {{ peer_cfg.public_key }}
+
+## private IP prefix for this peer ##
+AllowedIPs = {{ peer_cfg.private_ip_prefix }}
+{% endfor %}
+{% endfor %}
