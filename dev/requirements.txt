@@ -1,7 +1,8 @@
+hcloud
 pyyaml
 jq
+jinja2
 fabric
-hcloud
 paramiko
 pytest
 pytest-cov

@@ -1,4 +1,6 @@
 hcloud
 pyyaml
 jq
+jinja2
 fabric
+paramiko
