@@ -37,7 +37,8 @@ For now supports only Wireguard.
 ## VPN Yaml Example
 
 ```yaml
-95.217.160.205:
+# server IP address or a hostname
+1.1.1.1:
   description: some_server_name
   ssh_user: "ssh_user_name"
   # ssh-keygen -t ed25519 -C "some@tag"
