@@ -60,10 +60,12 @@ For now supports only Wireguard.
               # wg genkey | tee privatekey | wg pubkey > publickey
               private_key: PEER_PRIVATE_KEY_GOES_HERE=
               public_key: PEER_PUBLIC_KEY_GOES_HERE=
-              private_ip_prefix: 192.168.101.2/32
+              peer_private_ip: 192.168.101.2/24
+              dns_servers: 1.1.1.1, 1.0.0.1
           - peer_2:
               # wg genkey | tee privatekey | wg pubkey > publickey
               private_key: PEER_PRIVATE_KEY_GOES_HERE=
               public_key: PEER_PUBLIC_KEY_GOES_HERE=
-              private_ip_prefix: 192.168.101.3/32
+              peer_private_ip: 192.168.101.3/24
+              dns_servers: 1.1.1.1, 1.0.0.1
 ```
