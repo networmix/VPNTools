@@ -1,6 +1,6 @@
 #! /root/env/env/bin/python3
 from argparse import ArgumentParser
-from typing import Dict, Union
+from typing import Any, Dict, Union
 
 from vpntools.workflows import DEPLOY_WIREGUARD_WF, STATUS_WF
 
@@ -22,14 +22,14 @@ def subcommand(*subparser_args, parent=subparsers):
     return decorator
 
 
-@subcommand(argument("vpn_yaml"))
-def status(args: Dict[str, Union[str, int, float]]):
+@subcommand(argument("vpn_yaml"), argument("--hostname"))
+def status(args: Dict[str, Any]):
     """Get status"""
     STATUS_WF.run(args=args)
 
 
-@subcommand(argument("vpn_yaml"))
-def deploy_wg(args: Dict[str, Union[str, int, float]]):
+@subcommand(argument("vpn_yaml"), argument("--hostname"))
+def deploy_wg(args: Dict[str, Any]):
     """Deploy Wireguard"""
     DEPLOY_WIREGUARD_WF.run(args=args)
 

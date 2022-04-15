@@ -6,7 +6,7 @@ STATUS_WF = Workflow.from_dict(
         "instructions": [
             {"LOAD_CONFIG": {}},
             {"CONNECT_HOSTS": {}},
-            {"GET_HOST_STATUS": {}},
+            {"GET_WIREGUARD_STATUS": {}},
         ]
     }
 )

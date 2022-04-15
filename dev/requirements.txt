@@ -4,6 +4,9 @@ jq
 jinja2
 fabric
 paramiko
+termcolor
+pyfiglet
+prettytable
 pytest
 pytest-cov
 pytest-mock

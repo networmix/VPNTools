@@ -2,8 +2,27 @@ import datetime
 import socket
 import ipaddress
 from typing import Any, Dict
+from vpntools.host import Host
 
 from vpntools.jinja_render import render_from_template
+
+
+class WireguardServer:
+    def __init__(self, host: Host, config: Dict[str, Any]):
+        self.host = host
+        self.config = config
+        self.peer_key_map: Dict[str, str] = {}
+
+        for wg_if in self.config:
+            for peer_dict in self.config[wg_if].get("peers", []):
+                for peer_id, peer_cfg in peer_dict.items():
+                    self.peer_key_map[peer_cfg["public_key"]] = peer_id
+
+    def get_peer_stats(self) -> Dict[str, Any]:
+        return {
+            self.peer_key_map[k]: v
+            for k, v in self.host.run_linux_cmd("WG_STATUS").items()
+        }
 
 
 def build_wg_server_cfg(
@@ -41,3 +60,7 @@ def build_wg_peer_cfg(
             "ipaddress": ipaddress,
         },
     )
+
+
+def get_wg_from_host_cfg(host_cfg: Dict[str, Any]) -> Dict[str, Any]:
+    return host_cfg.get("app_config", {}).get("wireguard", {})

@@ -1,6 +1,7 @@
 import io
 import logging
 from typing import Any, Dict, Optional, Union, IO
+from datetime import datetime
 from tempfile import TemporaryFile
 
 from fabric import Connection
@@ -92,3 +93,6 @@ class Host:
             logger.info("%s: Writing data to a tmp file", self.hostname)
             f.write(data_str.encode())
             self.transfer_file(f, remote_path)
+
+    def get_uptime(self) -> datetime:
+        return self.run_linux_cmd("GET_UPTIME")

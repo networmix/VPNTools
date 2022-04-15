@@ -3,14 +3,23 @@ from abc import ABC, abstractmethod
 import subprocess
 
 from dataclasses import dataclass
+from datetime import datetime
 from collections import deque
 import os.path
 import logging
 from typing import Any, Dict, List, Optional
 
+from termcolor import cprint
+from prettytable import PrettyTable
+
 from vpntools.helpers import get_resource_path, yaml_to_dict
 from vpntools.host import Host
-from vpntools.wireguard import build_wg_peer_cfg, build_wg_server_cfg
+from vpntools.wireguard import (
+    WireguardServer,
+    build_wg_peer_cfg,
+    build_wg_server_cfg,
+    get_wg_from_host_cfg,
+)
 from vpntools.resources import scripts
 
 
@@ -112,11 +121,51 @@ class ConnectHosts(Instruction):
         return ctx
 
 
-class GetHostStatus(Instruction):
+class GetWireguardStatus(Instruction):
     def run(self, ctx: ExecutionContext) -> ExecutionContext:
+        hosts_tbl = PrettyTable()
+        hosts_tbl.field_names = [
+            "Hostname",
+            "Description",
+            "Server Uptime",
+        ]
+        hosts_tbl.align["Hostname"] = "r"
+        hosts_tbl.align["Description"] = "l"
+        hosts_tbl.align["Server Uptime"] = "l"
+        host_tables = {}
         for hostname, host in ctx.hosts.items():
-            print(hostname)
-            print(host.run_linux_cmd("GET_UPTIME"))
+            wg_app_config = get_wg_from_host_cfg(ctx.config[hostname])
+
+            wg_srv = WireguardServer(host, wg_app_config)
+            wg_srv_status = wg_srv.get_peer_stats()
+
+            host_table = PrettyTable()
+            host_table.field_names = ["Client", "Latest Endpoint", "Latest Active"]
+            host_table.align = "r"
+            host_tables[hostname] = host_table
+
+            for peer_id, peer_status in wg_srv_status.items():
+                host_table.add_row(
+                    [
+                        peer_id,
+                        peer_status.get("endpoint", ""),
+                        peer_status.get("latest handshake", ""),
+                    ]
+                )
+
+            hosts_tbl.add_row(
+                [
+                    hostname,
+                    host.config.get("description", ""),
+                    str(datetime.utcnow() - host.run_linux_cmd("GET_UPTIME")),
+                ]
+            )
+
+        cprint("All active servers:", color="cyan")
+        print(hosts_tbl)
+        for hostname, host_tbl in host_tables.items():
+            cprint(f"Details for {hostname}:", color="cyan")
+            print(host_tbl.get_string(sortby="Client"))
         return ctx
 
 
@@ -126,7 +175,8 @@ class DeployWireguard(Instruction):
 
         for hostname, host in ctx.hosts.items():
             logger.info("%s: Deploying Wireguard", hostname)
-            wg_app_config = ctx.config[hostname]["app_config"]["wireguard"]
+            wg_app_config = get_wg_from_host_cfg(ctx.config[hostname])
+
             for wg_if_name, wg_if_dict in wg_app_config.items():
                 logger.info(
                     "%s: Generating Wireguard configuration for %s",
@@ -150,7 +200,8 @@ class BuildWireguardClients(Instruction):
     def run(self, ctx: ExecutionContext) -> ExecutionContext:
         for hostname, _ in ctx.hosts.items():
             logger.info("%s: Generating Wireguard client configurations", hostname)
-            wg_app_config = ctx.config[hostname]["app_config"]["wireguard"]
+            wg_app_config = get_wg_from_host_cfg(ctx.config[hostname])
+
             for _, wg_if_dict in wg_app_config.items():
                 for peer in wg_if_dict["peers"]:
                     for peer_name, peer_dict in peer.items():
@@ -181,7 +232,7 @@ class BuildWireguardClients(Instruction):
 INSTRUCTIONS = {
     "LOAD_CONFIG": LoadConfig,
     "CONNECT_HOSTS": ConnectHosts,
-    "GET_HOST_STATUS": GetHostStatus,
+    "GET_WIREGUARD_STATUS": GetWireguardStatus,
     "DEPLOY_WIREGUARD": DeployWireguard,
     "BUILD_WIREGUARD_CLIENTS": BuildWireguardClients,
 }

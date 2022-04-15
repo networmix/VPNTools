@@ -4,3 +4,6 @@ jq
 jinja2
 fabric
 paramiko
+termcolor
+pyfiglet
+prettytable
